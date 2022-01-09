@@ -18,7 +18,7 @@ public class Order {
 
     private int clientId;
     private int basketId;
-    private String orderDate;
+    private Date orderDate;
     private int orderStatus;
     private int paymentType;
     private String deliveryAddress;
@@ -37,7 +37,6 @@ public class Order {
                  int paymentType, String deliveryAddress) {
         this.clientId = clientId;
         this.basketId = basketId;
-       // this.orderDate = new SimpleDateFormat("dd.MM.yy").format(new Date());
         this.orderStatus = orderStatus;
         this.paymentType = paymentType;
         this.deliveryAddress = deliveryAddress;
