@@ -6,6 +6,9 @@ import com.market.tools.mailer.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("/order")
 public class OrdersController {
@@ -24,7 +27,7 @@ public class OrdersController {
         } else if (clientId != null) {
             orders = repository.findByClientId(clientId);
         } else orders = repository.findAll();
-         return orders;
+        return orders;
     }
 
     @PostMapping("/save")
@@ -33,23 +36,50 @@ public class OrdersController {
                            @RequestParam String deliveryAddress) {
         Order order = new Order(clientId, basketId, orderStatus, paymentType, deliveryAddress);
         repository.save(order);
-        if(orderStatus == 0) {
+        if (orderStatus == 0) {
             mailSender.sendSimpleMessage("seroten@mail.ru", "Заказ в онлайн магазине", "Ваш заказ №" + basketId + " сформирован. Ожидайте звонка менеджера.");
         }
         return "0";
     }
 
     @PostMapping("/update")
-    public String updateOrder(@RequestParam Integer orderId, @RequestParam Integer clientId,
-                           @RequestParam Integer basketId, @RequestParam Integer orderStatus,
-                           @RequestParam Integer paymentType, @RequestParam String deliveryAddress) {
-        if (repository.findByOrderId(orderId).iterator().next().getOrderId() != null) {
-            Order updatedOrder = new Order(clientId, basketId, orderStatus,
-                                        paymentType, deliveryAddress);
-            updatedOrder.setOrderId(orderId);
-            repository.save(updatedOrder);
+    public String updateOrder(@RequestParam Integer orderId,
+                              @RequestParam(name = "orderStatus", required = false) Integer orderStatus,
+                              @RequestParam(name = "deliveryAddress", required = false) String deliveryAddress) {
+        List<Order> list = ((List<Order>) repository.findByOrderId(orderId));
+        if (list.size() == 1) {
+            Order order = list.get(0);
+            if (orderStatus != null)
+                order.setOrderStatus(orderStatus);
+            if (deliveryAddress != null)
+                order.setDeliveryAddress(deliveryAddress);
+            repository.save(order);
+            mailSender.sendSimpleMessage("seroten@mail.ru", "Заказ в онлайн магазине", "Ваш заказ №" + order.getOrderId() + " " + orderStatusString(order.getOrderStatus()));
+            return "0";
         }
-        mailSender.sendSimpleMessage("seroten@mail.ru", "Заказ в онлайн магазине", "Ваш заказ №" + basketId + " обновлен.");
-        return "0";
+        return "1";
+    }
+
+    private String orderStatusString(Integer orderStatus) {
+        switch (orderStatus) {
+            case (0):
+                return "создан";
+            case (1):
+                return "ожидает оплаты";
+            case (2):
+                return "оплачен";
+            case (3):
+                return "подтвержден";
+            case (4):
+                return "собран";
+            case (5):
+                return "отгружен";
+            case (6):
+                return "доставлен";
+            case (7):
+                return "отменен";
+            default:
+                return "обновлен";
+        }
     }
 }
