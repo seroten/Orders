@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface OrdersRepository extends CrudRepository<Order, Long> {
-
     Iterable<Order> findByOrderId(Integer orderId);
     Iterable<Order> findByClientId(Integer clientId);
 }
